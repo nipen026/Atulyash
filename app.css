@@ -19,11 +19,21 @@ body.atulyash-app-open .atulyash-cursor {
    instead, laying its children out with flexbox so they sit side by side. */
 .atulyash-header-cta-group {
   display: flex;
+  flex-wrap: wrap;
   grid-column: 3;
   grid-row: 1;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  row-gap: 8px;
   justify-self: end;
+}
+
+/* Our own header buttons can vary in count (logged out vs. logged in), so
+   let a button that doesn't fit wrap to its own new line — via flex-wrap
+   above — rather than having its own text wrap awkwardly mid-word. */
+.atulyash-app-cta {
+  white-space: nowrap;
 }
 
 @media (max-width: 1040px) {
