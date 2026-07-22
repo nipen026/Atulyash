@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -D - -o /dev/null -X OPTIONS https://api.atulyash.com/products/products -H 'Origin: https://example.com' -H 'Access-Control-Request-Method: GET' -H 'Access-Control-Request-Headers: content-type' --max-time 15)",
+      "Bash(curl -s \"https://api.atulyash.com/products/products\" --max-time 15)",
+      "Bash(curl -s \"https://api.atulyash.com/subscription/subscription_pack/\" --max-time 15)",
+      "Bash(curl -s \"https://api.atulyash.com/subscription/home_screen_section/public-sections/\" --max-time 15)",
+      "Bash(curl -s -X POST \"https://api.atulyash.com/users/otp/request/\" -H \"Content-Type: application/json\" -d '{\"mobile\":\"\",\"is_rider\":false}' --max-time 15)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" \"https://api.atulyash.com/products/products\" --max-time 15)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" \"https://api.atulyash.com/products/products/\" --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" -X POST \"https://api.atulyash.com/subscription/subscription_plan\" -H \"Content-Type: application/json\" -d '{}' --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" -X POST \"https://api.atulyash.com/subscription/subscription_plan/\" -H \"Content-Type: application/json\" -d '{}' --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" -X POST \"https://api.atulyash.com/orders/cart-items\" -H \"Content-Type: application/json\" -d '{}' --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" -X POST \"https://api.atulyash.com/orders/cart-items/\" -H \"Content-Type: application/json\" -d '{}' --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" \"https://api.atulyash.com/orders/cart/1\" --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"cart/1/ -> %{http_code}\\\\n\" \"https://api.atulyash.com/orders/cart/1/\" --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"customer-addresses/ \\(GET, no auth\\) -> %{http_code}\\\\n\" \"https://api.atulyash.com/customers/customer-addresses/\" --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"order/place \\(POST, no auth\\) -> %{http_code}\\\\n\" -X POST \"https://api.atulyash.com/orders/order/place/\" -H \"Content-Type: application/json\" -d '{}' --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"payment-verify/verify \\(POST, no auth\\) -> %{http_code}\\\\n\" -X POST \"https://api.atulyash.com/orders/payment-verify/verify/\" -H \"Content-Type: application/json\" -d '{}' --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"token/refresh \\(POST, bad token\\) -> %{http_code}\\\\n\" -X POST \"https://api.atulyash.com/token/refresh/\" -H \"Content-Type: application/json\" -d '{\"refresh\":\"bad\"}' --max-time 15)",
+      "Bash(python -m http.server 8123)",
+      "Bash(timeout 15 bash -c 'until curl -sf http://localhost:8123 >/dev/null; do sleep 1; done')",
+      "Bash(npx --yes playwright --version)",
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\ic\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Suprix-cloned-site-cloned-site\\\\5c9ade01-5f17-4bd1-94c8-1baffb683e93\\\\scratchpad\\\\pw\")",
+      "Bash(npm init *)",
+      "Bash(npx playwright *)",
+      "Bash(ls \"C:\\\\Users\\\\ic\\\\AppData\\\\Local\\\\ms-playwright\" 2>&1)",
+      "Read(//c/Users/ic/AppData/Local/ms-playwright/**)",
+      "Bash(mkdir -p screenshots)",
+      "Bash(node test.js)",
+      "Bash(node inspect.js)",
+      "Bash(node devbypass.js)",
+      "Bash(timeout 10 bash -c 'until curl -sf http://localhost:8123 >/dev/null; do sleep 1; done')",
+      "Bash(node -e ' *)",
+      "Bash(node audit.js)",
+      "Bash(node checkheadercrop.js)",
+      "Bash(node checkheader390.js)"
+    ]
+  }
+}

@@ -1,0 +1,494 @@
+/* Atulyash storefront app — modal overlay bolted onto the marketing site.
+   Reuses design tokens defined in styles.css (:root) rather than redeclaring them. */
+
+body.atulyash-app-open {
+  overflow: hidden;
+}
+
+/* The site's decorative mouse-follower cursor is position:fixed with
+   z-index:10000 — higher than our modals (2000) — so it floats visibly on
+   top of the checkout/account panels, reading as a stray "stuck" circle. */
+body.atulyash-app-open .atulyash-cursor {
+  display: none !important;
+}
+
+/* styles.css pins the single original .header-cta to a specific grid cell
+   (grid-column: 3 / grid-row: 1 on desktop, column 2 below 1040px/900px) —
+   adding two more .header-cta siblings directly in that grid would stack all
+   three on top of each other. This wrapper takes over that grid placement
+   instead, laying its children out with flexbox so they sit side by side. */
+.atulyash-header-cta-group {
+  display: flex;
+  grid-column: 3;
+  grid-row: 1;
+  align-items: center;
+  gap: 10px;
+  justify-self: end;
+}
+
+@media (max-width: 1040px) {
+  .atulyash-header-cta-group {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Two full-width CTAs (plus the hamburger) don't fit in this column at
+     phone widths — "Start My Plan Online" is the functional entry point,
+     so keep that one and drop the original marketing link (its destination
+     is still reachable by scrolling to the #start section). */
+  .atulyash-header-cta-group > .header-cta:not(.atulyash-app-cta) {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .atulyash-header-cta-group {
+    display: none;
+  }
+}
+
+#appRoot,
+#accountRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 220ms ease, visibility 0s linear 220ms;
+}
+
+#appRoot.is-open,
+#accountRoot.is-open {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 220ms ease;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.atulyash-app-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 39, 33, 0.55);
+}
+
+#appRoot.is-open .atulyash-app-panel,
+#accountRoot.is-open .atulyash-app-panel {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #appRoot,
+  #accountRoot,
+  .atulyash-app-panel {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.atulyash-app-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(100%, 480px);
+  height: 100%;
+  background: var(--cream-50);
+  box-shadow: var(--shadow);
+  overflow-y: auto;
+  padding: 32px 28px 48px;
+  transform: translateX(100%);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.atulyash-app-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--forest-950);
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.atulyash-app-close:hover {
+  background: rgba(11, 39, 33, 0.08);
+}
+
+.atulyash-app-close:active {
+  transform: scale(0.92);
+}
+
+.atulyash-app-logout {
+  position: absolute;
+  top: 26px;
+  left: 28px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.atulyash-app-logout:hover {
+  color: var(--rust-500);
+}
+
+.atulyash-app-logout.is-hidden {
+  display: none;
+}
+
+.atulyash-app-body {
+  margin-top: 48px;
+}
+
+.atulyash-app-body h2 {
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  margin-top: 32px;
+  margin-bottom: 8px;
+}
+
+.atulyash-app-body h2:first-child {
+  margin-top: 0;
+}
+
+.atulyash-app-body .atulyash-app-row h2 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.atulyash-app-sub {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.atulyash-app-loading {
+  color: var(--muted);
+}
+
+.atulyash-app-error {
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  color: var(--rust-600);
+  background: rgba(184, 79, 49, 0.1);
+  border: 1px solid rgba(184, 79, 49, 0.25);
+  border-radius: 2px;
+  font-size: 0.9rem;
+}
+
+.atulyash-app-body form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.atulyash-app-body label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--forest-800);
+}
+
+.atulyash-app-body input[type="text"],
+.atulyash-app-body input[type="tel"],
+.atulyash-app-body input[type="number"],
+.atulyash-app-body input[type="date"],
+.atulyash-app-body select {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--cream-50);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--ink);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.atulyash-app-body input[type="text"]:focus,
+.atulyash-app-body input[type="tel"]:focus,
+.atulyash-app-body input[type="number"]:focus,
+.atulyash-app-body input[type="date"]:focus,
+.atulyash-app-body select:focus {
+  border-color: var(--forest-700);
+}
+
+/* Keyboard focus gets a stronger, WCAG-compliant ring in place of the
+   browser default outline; a plain mouse click doesn't need it (matches
+   the global :focus-visible convention used elsewhere on the site). */
+.atulyash-app-body input[type="text"]:focus-visible,
+.atulyash-app-body input[type="tel"]:focus-visible,
+.atulyash-app-body input[type="number"]:focus-visible,
+.atulyash-app-body input[type="date"]:focus-visible,
+.atulyash-app-body select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(40, 100, 84, 0.35);
+}
+
+/* `form.atulyash-app-row` needs to beat `.atulyash-app-body form`'s
+   flex-direction:column on specificity — a bare `.atulyash-app-row` class
+   selector alone loses that fight since the other rule also matches the
+   `form` element. */
+.atulyash-app-row,
+form.atulyash-app-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.atulyash-app-row > div,
+.atulyash-app-row > input {
+  flex: 1;
+}
+
+.atulyash-app-link {
+  align-self: center;
+  border: none;
+  background: transparent;
+  color: var(--forest-700);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.atulyash-app-link:hover {
+  color: var(--rust-500);
+}
+
+.atulyash-plan-grid,
+.atulyash-date-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.atulyash-date-grid {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.atulyash-plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.atulyash-plan-card:hover {
+  border-color: var(--wheat-400);
+  transform: translateY(-1px);
+}
+
+.atulyash-plan-card input {
+  position: absolute;
+  opacity: 0;
+}
+
+.atulyash-plan-card.is-selected {
+  border-color: var(--rust-500);
+  background: rgba(184, 79, 49, 0.06);
+}
+
+.atulyash-plan-card:focus-within {
+  outline: 3px solid var(--wheat-400);
+  outline-offset: 2px;
+}
+
+.atulyash-plan-name {
+  font-weight: 700;
+  color: var(--forest-950);
+}
+
+.atulyash-plan-detail {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.atulyash-date-chip {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.atulyash-date-chip:hover {
+  border-color: var(--wheat-400);
+}
+
+.atulyash-date-chip input {
+  position: absolute;
+  opacity: 0;
+}
+
+.atulyash-date-chip.is-selected {
+  border-color: var(--rust-500);
+  background: rgba(184, 79, 49, 0.06);
+}
+
+.atulyash-date-chip:focus-within {
+  outline: 3px solid var(--wheat-400);
+  outline-offset: 2px;
+}
+
+.atulyash-cart-items {
+  margin-bottom: 16px;
+}
+
+.atulyash-cart-row,
+.atulyash-cart-totals > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+
+.atulyash-cart-totals {
+  margin: 16px 0 20px;
+}
+
+.atulyash-cart-total {
+  font-weight: 700;
+  font-size: 1.05rem !important;
+  border-bottom: none !important;
+}
+
+.atulyash-app-body > label {
+  margin-top: 8px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .atulyash-app-panel {
+    width: 100%;
+  }
+}
+
+/* ---- Account dashboard ---- */
+
+.atulyash-account-panel {
+  width: min(100%, 560px);
+}
+
+.atulyash-account-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 48px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+
+.atulyash-account-tab {
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.atulyash-account-tab:hover:not(.is-active) {
+  color: var(--forest-800);
+  border-color: var(--line);
+}
+
+.atulyash-account-tab.is-active {
+  color: var(--cream-50);
+  background: var(--forest-950);
+}
+
+.atulyash-account-panel .atulyash-app-body {
+  margin-top: 20px;
+}
+
+.atulyash-app-notice {
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  color: var(--forest-800);
+  background: rgba(40, 100, 84, 0.1);
+  border: 1px solid rgba(40, 100, 84, 0.25);
+  border-radius: 2px;
+  font-size: 0.9rem;
+}
+
+.atulyash-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 20px;
+}
+
+.atulyash-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+  transition: background 150ms ease;
+}
+
+.atulyash-list-row.is-unread {
+  background: rgba(184, 79, 49, 0.05);
+  cursor: pointer;
+}
+
+.atulyash-list-row.is-unread:hover {
+  background: rgba(184, 79, 49, 0.1);
+}
+
+.atulyash-list-row.is-unread:focus-visible {
+  outline: 3px solid var(--wheat-400);
+  outline-offset: -2px;
+}
+
+.atulyash-list-row > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.atulyash-list-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+button.atulyash-plan-card {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: var(--cream-50);
+  color: inherit;
+}
