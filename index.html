@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&amp;display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="images/atta-packet-2026.webp" fetchpriority="high">
   <link rel="preload" as="image" href="images/natural-stone-hero.webp" fetchpriority="high">
-  <link rel="stylesheet" href="styles.css?v=20260714-2">
+  <link rel="stylesheet" href="styles.css?v=20260724-1">
   <link rel="stylesheet" href="app.css?v=20260718-4">
 </head>
 <body>
@@ -27,7 +27,7 @@
   <aside class="announcement" aria-label="Freshness promise">
     <div class="container announcement-inner">
       <span class="announcement-mark" aria-hidden="true"></span>
-      <p>Milled the previous day. Fresh for the week ahead.</p>
+      <p>Atta is best consumed within the week it's milled.</p>
       <a href="#weekly">Why weekly?</a>
     </div>
   </aside>
@@ -47,8 +47,7 @@
       </nav>
 
       <div class="atulyash-header-cta-group">
-        <a class="header-cta" href="#start">First experience <span aria-hidden="true">↗</span></a>
-        <button class="header-cta atulyash-app-cta" type="button" data-open-app>Start my plan online <span aria-hidden="true">↗</span></button>
+        <button class="header-cta atulyash-app-cta" type="button" data-open-app>First experience <span aria-hidden="true">↗</span></button>
         <button class="header-cta atulyash-app-cta is-hidden" type="button" data-open-account>My account</button>
       </div>
 
@@ -64,13 +63,11 @@
     <section class="hero" id="home" aria-labelledby="hero-title">
       <div class="container hero-layout">
         <div class="hero-copy">
-          <p class="eyebrow eyebrow-light"><span></span>100% MP Sharbati · Natural-stone milled</p>
           <h1 id="hero-title">Atta deserves respect.</h1>
           <p class="hero-lead">It is eaten every day, yet rarely questioned with the seriousness it deserves.</p>
           <p class="hero-support">Atulyash brings that seriousness back.</p>
           <div class="hero-actions hero-actions-client">
-            <button class="button button-primary" type="button" data-open-app>Start My Weekly Plan Online <span aria-hidden="true">↗</span></button>
-            <a class="button button-primary" href="#start">Your First Atulyash Experience <span aria-hidden="true">↓</span></a>
+            <button class="button button-primary" type="button" data-open-app>Your First Atulyash Experience <span aria-hidden="true">↗</span></button>
             <a class="text-action" href="#weekly">Estimate My Weekly Requirement <span aria-hidden="true">→</span></a>
             <a class="text-action hero-subscribe" href="mailto:atulyashfoods@gmail.com?subject=Subscribe%20for%20Atulyash%20Weekly%20Delivery">Subscribe for Weekly Delivery <span aria-hidden="true">↗</span></a>
           </div>
@@ -111,8 +108,8 @@
         <div class="signature-orbit-heading">
           <div class="section-index">02 — The Atulyash Way</div>
           <p class="eyebrow eyebrow-light"><span></span>Six decisions. One honest packet.</p>
-          <h2 id="way-title">Meet Veer</h2>
-          <p>Your guide to better atta.</p>
+          <p class="way-meet-veer-label">Meet Veer</p>
+          <h2 id="way-title">Your guide to better atta.</h2>
         </div>
 
         <div class="orbit-showcase orbit-showcase-signature reveal" id="orbitShowcase">
@@ -161,7 +158,7 @@
           <div class="section-index">03 — A fresher routine</div>
           <p class="eyebrow"><span></span>The Atulyash Way</p>
           <h2 id="weekly-title">You buy milk fresh. Why store atta for a month or more?</h2>
-          <p>Atta is consumed every day too. Atulyash changes the way atta is bought — from long storage to weekly freshness.</p>
+          <p>Atta is eaten every day, yet it is usually bought like monthly stock. Atulyash changes that habit, from long storage to freshly milled weekly delivery.</p>
           <ol class="weekly-steps weekly-steps-four" data-motion-sequence>
             <li><span>1</span>Understand your monthly consumption</li>
             <li><span>2</span>Convert it into a weekly requirement</li>
@@ -182,8 +179,7 @@
           <div class="delivery-day-field">
             <label for="deliveryDay">Preferred delivery day</label>
             <select id="deliveryDay" name="deliveryDay">
-              <option>Monday</option>
-              <option>Tuesday</option>
+              <option selected>Tuesday</option>
               <option>Wednesday</option>
               <option>Thursday</option>
               <option>Friday</option>
@@ -258,7 +254,7 @@
             <div class="veer-label"><span>Veer investigates</span><strong>Daily food deserves clear answers.</strong></div>
           </div>
           <div class="questions-heading reveal">
-            <div class="section-index">05 — Ask better</div>
+            <div class="section-index">05 — Ask what matters</div>
             <p class="eyebrow"><span></span>Veer investigates</p>
             <h2 id="questions-title">Before you buy atta, ask what matters.</h2>
             <p>Start with the grain. Then the milling. Then the freshness. Every step decides the atta your family eats every day.</p>
@@ -280,7 +276,7 @@
       <div class="container compromises-header">
         <div class="section-index">06 — Look closer</div>
         <p class="eyebrow"><span></span>The everyday compromises</p>
-        <h2 id="compromises-title">Everyday atta may carry compromises you never see</h2>
+        <h2 id="compromises-title">Everyday atta may carry compromises you never see.</h2>
       </div>
 
       <div class="container compromise-grid">
@@ -355,26 +351,33 @@
         <div class="faq-heading">
           <div class="section-index">Questions, answered</div>
           <p class="eyebrow"><span></span>Good to know</p>
-          <h2 id="faq-title">Ask us anything.</h2>
-          <p>If your question is not here, our team would be glad to answer it directly.</p>
-          <a href="mailto:atulyashfoods@gmail.com" class="text-action text-action-dark">Write to us <span aria-hidden="true">→</span></a>
+          <h2 id="faq-title">Questions before you begin</h2>
+          <p>Our team will help you understand Atulyash, weekly delivery, subscription and your first experience.</p>
+          <div class="faq-contact-actions">
+            <a href="mailto:atulyashfoods@gmail.com" class="text-action text-action-dark">Write to us <span aria-hidden="true">→</span></a>
+            <a href="tel:+919818588996" class="text-action text-action-dark">Call us on 98185 88996 <span aria-hidden="true">→</span></a>
+          </div>
         </div>
         <div class="faq-list" data-motion-sequence>
           <details>
             <summary>What makes Atulyash different from regular packaged atta?<span aria-hidden="true">+</span></summary>
-            <p>Our difference is the complete process: carefully selected MP Sharbati wheat, multi-stage cleaning, slow natural-stone milling, small batches and a weekly delivery model.</p>
-          </details>
-          <details>
-            <summary>Is every chakki made from natural stone?<span aria-hidden="true">+</span></summary>
-            <p>No. Many chakkis use manufactured emery stones, while large industrial mills may use steel rollers. Atulyash specifically chooses natural stone.</p>
+            <p>Atulyash is built around carefully selected MP Sharbati wheat, natural stone slow milling, chokar retention and weekly delivery. The idea is not to store atta for long, but to receive it closer to consumption.</p>
           </details>
           <details>
             <summary>Why do you deliver weekly instead of monthly?<span aria-hidden="true">+</span></summary>
-            <p>Weekly quantities reduce the time atta waits after milling. Atulyash is designed around milling the previous day for the week ahead, rather than bulk storage.</p>
+            <p>Atta is eaten every day, yet it is usually bought like monthly stock. Atulyash delivers weekly so families receive smaller, fresher quantities instead of storing atta for weeks.</p>
           </details>
           <details>
-            <summary>How do I begin my first Atulyash experience?<span aria-hidden="true">+</span></summary>
-            <p>Use the weekly requirement guide, then call or email our team to confirm launch availability, quantity and your preferred delivery day.</p>
+            <summary>Is every chakki made from natural stone?<span aria-hidden="true">+</span></summary>
+            <p>No. Most chakkis use man-made synthetic emery stones, and large-scale systems may use steel rollers. Atulyash uses natural stone chakkis, no emery-stone grinding and no industrial steel rollers.</p>
+          </details>
+          <details>
+            <summary>What is chokar, and why does it matter?<span aria-hidden="true">+</span></summary>
+            <p>Chokar is the natural bran of wheat. It is the soul of atta. Atulyash does not separate the grain; the natural chokar remains, making the atta fuller and closer to the whole wheat grain.</p>
+          </details>
+          <details>
+            <summary>Do I have to subscribe immediately?<span aria-hidden="true">+</span></summary>
+            <p>No. You can start with your first Atulyash experience before moving to weekly subscription. Subscription is recommended for freshness and regularity, but the first step can be simple.</p>
           </details>
         </div>
       </div>
@@ -383,15 +386,25 @@
     <section class="start-section section" id="start" aria-labelledby="start-title">
       <div class="container start-card" data-motion-scene>
         <div class="start-copy">
-          <p class="eyebrow"><span></span>Your first fresh week</p>
+          <p class="eyebrow"><span></span>Start your journey towards purity</p>
           <h2 id="start-title">Bring home atta in its purest form.</h2>
           <p>Experience Atulyash with freshly milled atta, delivered in weekly quantity, closer to the way atta was meant to be consumed.</p>
+          <!-- The Rs. 100 credit below is display copy only until a matching coupon
+               is confirmed live in the backend — see plan notes. It currently just
+               opens checkout like the other CTAs, same as before this card existed. -->
+          <button class="start-experience-credit" type="button" data-open-app>
+            <span class="start-experience-credit-icon" aria-hidden="true">✿</span>
+            <span class="start-experience-credit-copy">
+              <strong>Your First Atulyash Experience</strong>
+              <span>Rs. 100 experience credit on your first order of minimum 2 kg</span>
+            </span>
+            <span class="start-experience-credit-arrow" aria-hidden="true">›</span>
+          </button>
           <div class="start-actions">
-            <a class="button button-primary" href="tel:+919545686421">Your First Atulyash Experience</a>
             <a class="text-action text-action-dark" href="#weekly">Estimate My Weekly Requirement <span aria-hidden="true">→</span></a>
             <a class="text-action text-action-dark" href="mailto:atulyashfoods@gmail.com?subject=Subscribe%20for%20Atulyash%20Weekly%20Delivery">Subscribe for Weekly Delivery <span aria-hidden="true">↗</span></a>
           </div>
-          <small>No payment is taken on this website. Call +91 95456 86421 to check availability.</small>
+          <small>Call +91 98185 88996 to check delivery availability in your area.</small>
         </div>
         <div class="start-visual" aria-hidden="true" data-cursor-label="Fresh weekly">
           <div class="start-ring"></div>
@@ -421,7 +434,7 @@
       </div>
       <div class="footer-col">
         <h2>Contact</h2>
-        <a href="tel:+919545686421">+91 95456 86421</a>
+        <a href="tel:+919818588996">+91 98185 88996</a>
         <a href="mailto:atulyashfoods@gmail.com">atulyashfoods@gmail.com</a>
         <p>Panipat, Haryana, India</p>
       </div>
@@ -439,7 +452,7 @@
   <div id="appRoot" aria-hidden="true"></div>
   <div id="accountRoot" aria-hidden="true"></div>
 
-  <script src="script.js?v=20260713-6"></script>
+  <script src="script.js?v=20260724-1"></script>
   <script type="module" src="app/main.js?v=20260718-2"></script>
 </body>
 </html>

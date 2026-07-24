@@ -2205,12 +2205,70 @@ h3 {
   color: rgba(11, 39, 33, 0.72);
 }
 
+.start-experience-credit {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  max-width: 560px;
+  margin-top: 34px;
+  padding: 18px 22px;
+  color: var(--cream-50);
+  text-align: left;
+  background: var(--forest-950);
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.start-experience-credit:hover {
+  background: var(--forest-800);
+  transform: translateY(-2px);
+}
+
+.start-experience-credit-icon {
+  display: grid;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: var(--forest-950);
+  background: var(--wheat-400);
+  border-radius: 50%;
+  font-size: 1.1rem;
+}
+
+.start-experience-credit-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.start-experience-credit-copy strong {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.start-experience-credit-copy > span {
+  color: rgba(255, 253, 248, 0.7);
+  font-size: 0.82rem;
+}
+
+.start-experience-credit-arrow {
+  flex-shrink: 0;
+  color: var(--wheat-300);
+  font-size: 1.4rem;
+}
+
 .start-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 24px;
-  margin-top: 34px;
+  margin-top: 22px;
 }
 
 .start-copy > small {
@@ -2307,6 +2365,13 @@ h3 {
 
 .faq-heading > p:not(.eyebrow) {
   color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.faq-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
 }
 
 .faq-list {
@@ -3502,8 +3567,10 @@ h3 {
 .hero-lead {
   max-width: 620px;
   margin-bottom: 18px;
+  color: rgba(255, 253, 248, 0.92);
   font-family: var(--serif);
   font-size: clamp(1.28rem, 1.8vw, 1.62rem);
+  font-weight: 500;
   line-height: 1.28;
 }
 
@@ -3586,11 +3653,13 @@ h3 {
   font-size: clamp(4rem, 7vw, 6.7rem);
 }
 
-.signature-orbit-heading > p:last-child {
-  margin: 10px 0 0;
-  color: rgba(255, 253, 248, 0.62);
-  font-family: var(--serif);
-  font-size: 1.25rem;
+.way-meet-veer-label {
+  margin: 0 0 10px;
+  color: var(--wheat-300);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .orbit-showcase-signature {
@@ -3651,8 +3720,8 @@ h3 {
 }
 
 .orbit-core-veer {
-  width: 286px;
-  height: 286px;
+  width: 330px;
+  height: 330px;
   border-width: 3px;
   box-shadow: 0 0 0 18px rgba(222, 197, 143, 0.08), 0 32px 82px rgba(0, 0, 0, 0.4);
 }
@@ -3668,11 +3737,15 @@ h3 {
   right: 22px;
   bottom: 18px;
   left: 22px;
-  padding: 9px 12px;
+  padding: 10px 14px;
+}
+
+.orbit-core-veer p span {
+  font-size: 0.62rem;
 }
 
 .orbit-core-veer p strong {
-  font-size: 1.02rem;
+  font-size: 1.18rem;
 }
 
 .weekly-copy h2 {
@@ -3955,9 +4028,12 @@ h3 {
 }
 
 .way-answer span {
-  display: block;
+  display: inline-block;
   margin-bottom: 12px;
+  padding: 5px 10px;
   color: var(--rust-500);
+  background: rgba(184, 79, 49, 0.1);
+  border-radius: 20px;
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.13em;
@@ -3984,6 +4060,10 @@ h3 {
   border-top-color: rgba(11, 39, 33, 0.2);
 }
 
+.compromise-card-featured .way-answer span {
+  background: rgba(11, 39, 34, 0.1);
+}
+
 .compromise-card-dark {
   color: rgba(255, 253, 248, 0.72);
   background: var(--forest-900);
@@ -4005,6 +4085,10 @@ h3 {
 .compromise-card-dark header,
 .compromise-card-dark .way-answer span {
   color: var(--wheat-300);
+}
+
+.compromise-card-dark .way-answer span {
+  background: rgba(222, 197, 143, 0.15);
 }
 
 .start-copy h2 {
@@ -4109,8 +4193,8 @@ h3 {
   }
 
   .orbit-core-veer {
-    width: 250px;
-    height: 250px;
+    width: 290px;
+    height: 290px;
   }
 
   .awareness-layout {
@@ -4219,8 +4303,8 @@ h3 {
     position: relative;
     top: auto;
     left: auto;
-    width: 245px;
-    height: 245px;
+    width: 280px;
+    height: 280px;
     margin: 0 auto 38px;
     transform: none;
   }

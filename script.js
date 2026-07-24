@@ -92,7 +92,7 @@ const updateQuantity = () => {
   quantityHasRendered = true;
 
   if (calculatorCta) {
-    const day = deliveryDay?.value || 'Monday';
+    const day = deliveryDay?.value || 'Tuesday';
     const subject = 'My Atulyash weekly requirement';
     const body = [
       'Hello Atulyash team,',
