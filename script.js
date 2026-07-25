@@ -58,47 +58,86 @@ if (menuToggle && primaryNav) {
   });
 }
 
-const monthlyUsage = document.getElementById('monthlyUsage');
-const monthlyOutput = document.getElementById('monthlyOutput');
+const rotisPerDay = document.getElementById('rotisPerDay');
+const rotisOutput = document.getElementById('rotisOutput');
 const weeklyOutput = document.getElementById('weeklyOutput');
+const calculatorMonthlyNote = document.getElementById('calculatorMonthlyNote');
+const calculatorRecommended = document.getElementById('calculatorRecommended');
+const calculatorRecommendedName = document.getElementById('calculatorRecommendedName');
+const calculatorInfoTrigger = document.getElementById('calculatorInfoTrigger');
+const calculatorInfoModal = document.getElementById('calculatorInfoModal');
+const calculatorInfoExplanation = document.getElementById('calculatorInfoExplanation');
+const calculatorInfoWeekly = document.getElementById('calculatorInfoWeekly');
+const calculatorInfoMonthly = document.getElementById('calculatorInfoMonthly');
 const deliveryDay = document.getElementById('deliveryDay');
 const calculatorCta = document.getElementById('calculatorCta');
+
 let quantityHasRendered = false;
 let quantityAnimation;
+let calculatorFetchTimer;
+let latestCalculatorData = null;
 
-const updateQuantity = () => {
-  if (!monthlyUsage || !monthlyOutput || !weeklyOutput) return;
-  const monthly = Number(monthlyUsage.value);
-  const weekly = monthly / 4.3;
-  const minimum = Number(monthlyUsage.min);
-  const maximum = Number(monthlyUsage.max);
-  const progress = ((monthly - minimum) / (maximum - minimum)) * 100;
+const updateSliderProgress = () => {
+  if (!rotisPerDay || !rotisOutput) return;
+  const value = Number(rotisPerDay.value);
+  const minimum = Number(rotisPerDay.min);
+  const maximum = Number(rotisPerDay.max);
+  const progress = ((value - minimum) / (maximum - minimum)) * 100;
+  rotisOutput.textContent = value;
+  rotisPerDay.style.setProperty('--range-progress', `${progress}%`);
+};
 
-  monthlyOutput.textContent = `${monthly} kg`;
-  weeklyOutput.textContent = `${weekly.toFixed(1)} kg`;
-  monthlyUsage.style.setProperty('--range-progress', `${progress}%`);
+const renderCalculatorResult = (data) => {
+  latestCalculatorData = data;
+  const weeklyKg = data?.estimates?.weekly_kg ?? 0;
+  const monthlyKg = data?.estimates?.monthly_kg ?? 0;
+  const bestPlan = data?.recommended_plans?.find((plan) => plan.is_recommended);
 
-  if (quantityHasRendered && !reducedMotion.matches && typeof weeklyOutput.animate === 'function') {
-    quantityAnimation?.cancel();
-    quantityAnimation = weeklyOutput.animate([
-      { opacity: 0.55, transform: 'translateY(7px) scale(0.96)' },
-      { opacity: 1, transform: 'translateY(0) scale(1)' }
-    ], {
-      duration: 220,
-      easing: 'cubic-bezier(0.2, 0.8, 0.25, 1)'
-    });
+  if (weeklyOutput) {
+    weeklyOutput.textContent = `${weeklyKg} kg`;
+    if (quantityHasRendered && !reducedMotion.matches && typeof weeklyOutput.animate === 'function') {
+      quantityAnimation?.cancel();
+      quantityAnimation = weeklyOutput.animate([
+        { opacity: 0.55, transform: 'translateY(7px) scale(0.96)' },
+        { opacity: 1, transform: 'translateY(0) scale(1)' }
+      ], {
+        duration: 220,
+        easing: 'cubic-bezier(0.2, 0.8, 0.25, 1)'
+      });
+    }
+    quantityHasRendered = true;
   }
 
-  quantityHasRendered = true;
+  if (calculatorMonthlyNote) {
+    calculatorMonthlyNote.textContent = `Approximate guide, ~${monthlyKg} kg per month`;
+  }
+
+  if (calculatorRecommended && calculatorRecommendedName) {
+    if (bestPlan) {
+      calculatorRecommendedName.textContent = bestPlan.pack_name;
+      calculatorRecommended.hidden = false;
+    } else {
+      calculatorRecommended.hidden = true;
+    }
+  }
+
+  if (calculatorInfoExplanation && data?.explanation) {
+    calculatorInfoExplanation.textContent = data.explanation;
+  }
+  if (calculatorInfoWeekly) calculatorInfoWeekly.textContent = `${weeklyKg} kg`;
+  if (calculatorInfoMonthly) {
+    calculatorInfoMonthly.textContent = bestPlan ? `${bestPlan.pack_weight_kg} kg/month` : `${monthlyKg} kg/month`;
+  }
 
   if (calculatorCta) {
     const day = deliveryDay?.value || 'Tuesday';
+    const rotis = rotisPerDay?.value || '';
     const subject = 'My Atulyash weekly requirement';
     const body = [
       'Hello Atulyash team,',
       '',
-      `My household uses approximately ${monthly} kg of atta per month.`,
-      `Suggested weekly quantity: ${weekly.toFixed(1)} kg.`,
+      `My household eats approximately ${rotis} rotis per day.`,
+      `Suggested weekly quantity: ${weeklyKg} kg (~${monthlyKg} kg per month).`,
       `Preferred delivery day: ${day}.`,
       '',
       'Please share availability for my first Atulyash experience.'
@@ -107,10 +146,55 @@ const updateQuantity = () => {
   }
 };
 
-if (monthlyUsage) {
-  monthlyUsage.addEventListener('input', updateQuantity);
-  deliveryDay?.addEventListener('change', updateQuantity);
-  updateQuantity();
+const fetchCalculatorEstimate = async () => {
+  if (!rotisPerDay) return;
+  const rotis = Number(rotisPerDay.value);
+
+  try {
+    const response = await fetch(`https://api.atulyash.com/subscription/subscription_pack/consumption-calculator/?rotis_per_day=${rotis}`);
+    if (!response.ok) throw new Error('Calculator request failed');
+    const data = await response.json();
+    renderCalculatorResult(data);
+  } catch (error) {
+    console.error('Atta calculator error:', error);
+    if (calculatorMonthlyNote) {
+      calculatorMonthlyNote.textContent = 'Could not fetch an estimate right now — please try again.';
+    }
+  }
+};
+
+const scheduleCalculatorEstimate = () => {
+  updateSliderProgress();
+  clearTimeout(calculatorFetchTimer);
+  calculatorFetchTimer = setTimeout(fetchCalculatorEstimate, 400);
+};
+
+if (rotisPerDay) {
+  rotisPerDay.addEventListener('input', scheduleCalculatorEstimate);
+  deliveryDay?.addEventListener('change', () => {
+    if (latestCalculatorData) renderCalculatorResult(latestCalculatorData);
+  });
+  updateSliderProgress();
+  fetchCalculatorEstimate();
+}
+
+if (calculatorInfoTrigger && calculatorInfoModal) {
+  const openCalculatorInfo = () => {
+    calculatorInfoModal.hidden = false;
+    calculatorInfoModal.querySelector('[data-calc-info-close]')?.focus();
+  };
+  const closeCalculatorInfo = () => {
+    calculatorInfoModal.hidden = true;
+    calculatorInfoTrigger.focus();
+  };
+
+  calculatorInfoTrigger.addEventListener('click', openCalculatorInfo);
+  calculatorInfoModal.querySelectorAll('[data-calc-info-close]').forEach((el) => {
+    el.addEventListener('click', closeCalculatorInfo);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !calculatorInfoModal.hidden) closeCalculatorInfo();
+  });
 }
 
 const revealItems = document.querySelectorAll('.reveal');

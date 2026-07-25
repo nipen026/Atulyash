@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&amp;display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="images/atta-packet-2026.webp" fetchpriority="high">
   <link rel="preload" as="image" href="images/natural-stone-hero.webp" fetchpriority="high">
-  <link rel="stylesheet" href="styles.css?v=20260724-1">
+  <link rel="stylesheet" href="styles.css?v=20260724-2">
   <link rel="stylesheet" href="app.css?v=20260718-4">
 </head>
 <body>
@@ -171,11 +171,11 @@
           <p class="calculator-tag">Estimate my weekly requirement</p>
           <h3 id="calculator-title">How much atta does your home use?</h3>
           <div class="range-labels">
-            <label for="monthlyUsage">Monthly usage</label>
-            <output id="monthlyOutput" for="monthlyUsage">10 kg</output>
+            <label for="rotisPerDay">Rotis per day</label>
+            <output id="rotisOutput" for="rotisPerDay">12</output>
           </div>
-          <input id="monthlyUsage" name="monthlyUsage" type="range" min="5" max="30" step="1" value="10">
-          <div class="range-scale" aria-hidden="true"><span>5 kg</span><span>30 kg</span></div>
+          <input id="rotisPerDay" name="rotisPerDay" type="range" min="8" max="40" step="1" value="12">
+          <div class="range-scale" aria-hidden="true"><span>8 rotis</span><span>40 rotis</span></div>
           <div class="delivery-day-field">
             <label for="deliveryDay">Preferred delivery day</label>
             <select id="deliveryDay" name="deliveryDay">
@@ -190,9 +190,45 @@
           <div class="weekly-result" aria-live="polite">
             <span>Your suggested weekly quantity</span>
             <strong id="weeklyOutput">2.3 kg</strong>
-            <small>Approximate guide based on 4.3 weeks per month</small>
+            <small id="calculatorMonthlyNote">Approximate guide, ~9.9 kg per month</small>
+            <button type="button" class="calculator-info-trigger" id="calculatorInfoTrigger">
+              <span aria-hidden="true">ⓘ</span> How we calculated this
+            </button>
+          </div>
+          <div class="calculator-recommended" id="calculatorRecommended" hidden>
+            <span>Recommended plan</span>
+            <strong id="calculatorRecommendedName"></strong>
           </div>
           <a class="button button-dark button-block" id="calculatorCta" href="mailto:atulyashfoods@gmail.com?subject=My%20Atulyash%20weekly%20requirement">Send my weekly estimate <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="calculator-info-modal" id="calculatorInfoModal" hidden>
+          <div class="calculator-info-backdrop" data-calc-info-close></div>
+          <div class="calculator-info-panel" role="dialog" aria-modal="true" aria-labelledby="calculatorInfoTitle">
+            <div class="calculator-info-head">
+              <span class="calculator-info-icon" aria-hidden="true">ⓘ</span>
+              <h4 id="calculatorInfoTitle">How we calculated this</h4>
+            </div>
+            <p class="calculator-info-note" id="calculatorInfoExplanation">
+              Your monthly atta is calculated based on your daily rotis. We assume each roti uses ~30g of atta and count it across 25 days of regular use. A small 10% buffer is added for extras like parathas or guests, so you don't run out.
+            </p>
+            <div class="calculator-info-formula">
+              <span>Formula</span>
+              <code>(rotis × 30g × 25 days) + 10% extra</code>
+            </div>
+            <div class="calculator-info-result">
+              <div>
+                <span>Estimated household usage</span>
+                <strong id="calculatorInfoWeekly">0 kg</strong>
+                <small>Per week</small>
+              </div>
+              <div>
+                <span>Recommended</span>
+                <strong id="calculatorInfoMonthly">0 kg/month</strong>
+              </div>
+            </div>
+            <button type="button" class="button button-dark button-block" data-calc-info-close>Got it</button>
+          </div>
         </div>
       </div>
     </section>
@@ -452,7 +488,7 @@
   <div id="appRoot" aria-hidden="true"></div>
   <div id="accountRoot" aria-hidden="true"></div>
 
-  <script src="script.js?v=20260724-1"></script>
+  <script src="script.js?v=20260724-2"></script>
   <script type="module" src="app/main.js?v=20260718-2"></script>
 </body>
 </html>
