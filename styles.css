@@ -77,6 +77,13 @@ h3 {
   font-weight: 500;
   line-height: 0.98;
   letter-spacing: -0.035em;
+  /* These headings scale with vw at large, near-viewport-filling sizes.
+     On some devices/text-scaling settings a single word can end up
+     slightly wider than its container; without this, the overflowing
+     sliver is invisible (not scrollable) because of the sitewide
+     `overflow-x: hidden` on body — it should wrap instead of vanishing. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 h2 {
@@ -853,15 +860,64 @@ h3 {
   line-height: 0.75;
 }
 
-.veer-investigation-card > img {
+.veer-investigation-card > .veer-float {
+  position: absolute;
+  z-index: 2;
   right: auto;
   bottom: 9px;
   left: 0;
-  width: 76%;
-  height: 92%;
+  width: 84%;
+  height: 88%;
+  transform-origin: 46% 96%;
+}
+
+.veer-investigation-card > .veer-float > img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   object-position: center bottom;
-  transform-origin: 48% 92%;
+  transform-origin: 46% 96%;
+}
+
+/* Continuous ambient motion — separate from the one-shot "thinking" reveal
+   below, so the two transforms don't fight over the same element. Runs
+   forever once the intro reveal finishes; disabled under reduced-motion. */
+.veer-investigation-card.is-investigating > .veer-float {
+  animation: veer-idle-float 5.6s ease-in-out infinite;
+  animation-delay: 4.6s;
+}
+
+@keyframes veer-idle-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(0.6deg);
+  }
+}
+
+/* Interactive hover — lives on the card itself so it composes cleanly with
+   the image's own animations instead of competing for the same transform. */
+.veer-investigation-card {
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 320ms ease;
+}
+
+.veer-investigation-card:hover,
+.veer-investigation-card:focus-within {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 60px rgba(17, 55, 46, 0.16);
+}
+
+.veer-investigation-card:hover > .veer-float > img,
+.veer-investigation-card:focus-within > .veer-float > img {
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: scale(1.035);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .veer-investigation-card.is-investigating > .veer-float {
+    animation: none;
+  }
 }
 
 .veer-clue-stage {
@@ -953,7 +1009,7 @@ h3 {
   transform: translateY(10px) scale(0.97);
 }
 
-.veer-investigation-card.is-investigating > img {
+.veer-investigation-card.is-investigating > .veer-float > img {
   animation: veer-thinks 4.55s cubic-bezier(0.22, 0.7, 0.25, 1) both;
 }
 
@@ -3246,9 +3302,9 @@ h3 {
     min-height: 500px;
   }
 
-  .veer-investigation-card > img {
-    width: 72%;
-    height: 88%;
+  .veer-investigation-card > .veer-float {
+    width: 80%;
+    height: 84%;
   }
 
   .veer-clue-stage {
@@ -3592,7 +3648,8 @@ h3 {
     animation: none !important;
   }
 
-  .veer-investigation-card > img,
+  .veer-investigation-card .veer-float,
+  .veer-investigation-card .veer-float > img,
   .veer-investigation-card .veer-clue {
     animation: none !important;
   }
@@ -3872,40 +3929,44 @@ h3 {
 }
 
 .signature-orbit-stage {
-  width: min(100%, 780px);
+  width: min(100%, 900px);
   justify-self: auto;
   margin-inline: auto;
 }
 
+/* Ring radii are sized to clear the (enlarged) core circle plus half a node
+   label's width, with margin to spare — not just to clear the ring line
+   itself. Getting only the ring-vs-core gap right left the labels
+   themselves colliding with the core at several angles during rotation. */
 .signature-orbit-stage .orbit-ring-outer {
-  width: 620px;
-  height: 620px;
-  margin: -310px 0 0 -310px;
+  width: 900px;
+  height: 900px;
+  margin: -450px 0 0 -450px;
   animation-duration: 48s;
 }
 
 .signature-orbit-stage .orbit-ring-inner {
-  width: 430px;
-  height: 430px;
-  margin: -215px 0 0 -215px;
+  width: 540px;
+  height: 540px;
+  margin: -270px 0 0 -270px;
   animation-name: orbit-spin;
   animation-duration: 48s;
 }
 
 .signature-orbit-stage .orbit-ring-outer .orbit-node {
-  --radius: 310px;
+  --radius: 450px;
 }
 
 .signature-orbit-stage .orbit-ring-inner .orbit-node {
-  --radius: 215px;
+  --radius: 270px;
 }
 
 .signature-orbit-stage .orbit-node span {
-  width: 168px;
-  min-height: 48px;
-  padding: 10px 16px;
+  width: 150px;
+  min-height: 46px;
+  padding: 9px 14px;
   animation-duration: 48s;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
 }
 
 .signature-orbit-stage .orbit-ring-inner .orbit-node span {
@@ -4314,27 +4375,38 @@ h3 {
   }
 
   .signature-orbit-stage {
-    width: 700px;
+    width: 750px;
   }
 
   .signature-orbit-stage .orbit-ring-outer {
-    width: 560px;
-    height: 560px;
-    margin: -280px 0 0 -280px;
+    width: 750px;
+    height: 750px;
+    margin: -375px 0 0 -375px;
   }
 
   .signature-orbit-stage .orbit-ring-inner {
-    width: 390px;
-    height: 390px;
-    margin: -195px 0 0 -195px;
+    width: 460px;
+    height: 460px;
+    margin: -230px 0 0 -230px;
   }
 
   .signature-orbit-stage .orbit-ring-outer .orbit-node {
-    --radius: 280px;
+    --radius: 375px;
   }
 
   .signature-orbit-stage .orbit-ring-inner .orbit-node {
-    --radius: 195px;
+    --radius: 230px;
+  }
+
+  .signature-orbit-stage .orbit-node span {
+    width: 130px;
+    min-height: 44px;
+    font-size: 0.65rem;
+  }
+
+  .orbit-core-veer {
+    width: 300px;
+    height: 300px;
   }
 
   .awareness-layout {
@@ -4363,27 +4435,35 @@ h3 {
   }
 
   .signature-orbit-stage {
-    width: 650px;
+    width: 592px;
   }
 
   .signature-orbit-stage .orbit-ring-outer {
-    width: 520px;
-    height: 520px;
-    margin: -260px 0 0 -260px;
+    width: 592px;
+    height: 592px;
+    margin: -296px 0 0 -296px;
   }
 
   .signature-orbit-stage .orbit-ring-inner {
-    width: 360px;
-    height: 360px;
-    margin: -180px 0 0 -180px;
+    width: 400px;
+    height: 400px;
+    margin: -200px 0 0 -200px;
   }
 
   .signature-orbit-stage .orbit-ring-outer .orbit-node {
-    --radius: 260px;
+    --radius: 296px;
   }
 
   .signature-orbit-stage .orbit-ring-inner .orbit-node {
-    --radius: 180px;
+    --radius: 200px;
+  }
+
+  .signature-orbit-stage .orbit-node span {
+    width: 86px;
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: 0.58rem;
+    letter-spacing: 0.02em;
   }
 
   .orbit-core-veer {
