@@ -1,12 +1,29 @@
-import { apiClient } from './apiClient.js';
+import { apiClient, withQuery, toList } from './apiClient.js';
 import { API_ROUTES } from './endpoints.js';
-import { STORAGE_KEYS } from './config.js';
+import { API_BASE_URL, STORAGE_KEYS } from './config.js';
 
-export async function fetchOrders(customerId) {
+const PAGE_SIZE = 15;
+
+/**
+ * Order history. `oneTime` splits one-time purchases from subscription orders —
+ * omit it to get both. Returns `count` alongside the page so callers can paginate.
+ */
+export async function fetchOrders(customerId, { page = 1, oneTime = null } = {}) {
   const res = await apiClient({
-    url: `${API_ROUTES.ORDER.GET}?is_active=true&customer__id=${customerId}&pending_order=false`,
+    url: withQuery(API_ROUTES.ORDER.GET, {
+      page_size: PAGE_SIZE,
+      page,
+      is_active: true,
+      customer__id: customerId,
+      pending_order: false,
+      one_time: oneTime,
+    }),
   });
-  return res.data?.results || [];
+  return {
+    results: toList(res.data, ['orders']),
+    count: res.data?.count || 0,
+    pageSize: PAGE_SIZE,
+  };
 }
 
 export async function fetchOrderById(orderId) {
@@ -14,8 +31,30 @@ export async function fetchOrderById(orderId) {
   return res.data;
 }
 
+/** The individual deliveries generated under a subscription order. */
+export async function fetchSubscriptionOrders(orderId, { page = 1 } = {}) {
+  const res = await apiClient({
+    url: withQuery(API_ROUTES.ORDER.SUBSCRIPTION_ORDERS(orderId), { page_size: PAGE_SIZE, page }),
+  });
+  return {
+    results: toList(res.data, ['orders', 'deliveries']),
+    count: res.data?.count || 0,
+    pageSize: PAGE_SIZE,
+  };
+}
+
 export async function fetchOrderDelivery(deliveryId) {
   const res = await apiClient({ url: API_ROUTES.ORDER_DELIVERY.GET_BY_ID(deliveryId) });
+  return res.data;
+}
+
+/** Redirects a placed-but-not-yet-dispatched order to a different address. */
+export async function changeOrderAddress(orderId, addressId) {
+  const res = await apiClient({
+    url: API_ROUTES.ORDER.CHANGE_ADDRESS(orderId),
+    method: 'POST',
+    body: { address_id: addressId },
+  });
   return res.data;
 }
 
@@ -31,9 +70,12 @@ export async function reorder(orderId) {
  */
 export async function downloadInvoice({ orderStatus = '', deliveryId = '' } = {}) {
   const token = localStorage.getItem(STORAGE_KEYS.token);
-  const url = `https://api.atulyash.com${API_ROUTES.GENERATE_INVOICE.GET}?order_status=${orderStatus}&delivery_id=${deliveryId}`;
+  const path = withQuery(API_ROUTES.GENERATE_INVOICE.GET, {
+    order_status: orderStatus,
+    delivery_id: deliveryId,
+  });
 
-  const res = await fetch(url, {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 

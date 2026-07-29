@@ -2,13 +2,23 @@ import { GOOGLE_PLACES_API_KEY } from './config.js';
 import { requestOtp, verifyOtp, isAuthenticated, getCustomerId, getCartId, logout } from './auth.js';
 import {
   fetchSubscriptionPacks,
+  fetchProducts,
   fetchAddresses,
   createAddress,
+  isPincodeServiceable,
   previewWeeklyPlan,
   addSubscriptionToCart,
+  addProductToCart,
+  updateCartItemQuantity,
+  removeCartItem,
+  clearCart,
   getCart,
+  fetchEligibleCoupons,
   applyCoupon,
+  applyCouponByCode,
   removeCoupon,
+  applyKit,
+  removeKit,
   placeOrder,
   verifyOrderPayment,
   openRazorpayCheckout,
@@ -50,8 +60,13 @@ function initialState() {
     selectedStartDate: null,
     cart: null,
     couponCode: '',
+    eligibleCoupons: [],
+    showCoupons: false,
+    products: [],
+    showProducts: false,
     paymentMethod: 'razorpay',
     confirmation: null,
+    pincodeWarning: null,
   };
 }
 
@@ -150,7 +165,20 @@ function formatCoordinate(value) {
 }
 
 async function handleSaveAddress(formValues) {
-  setState({ busy: true, error: null });
+  setState({ busy: true, error: null, pincodeWarning: null });
+
+  // Check serviceability before creating the address, so an out-of-area
+  // customer finds out here instead of at the delivery-date step. A null result
+  // means the check itself failed — don't block signup on that.
+  const serviceable = await isPincodeServiceable(formValues.pincode);
+  if (serviceable === false) {
+    setState({
+      busy: false,
+      error: `We don't deliver to ${formValues.pincode} yet. Try another address, or write to us and we'll tell you when we reach you.`,
+    });
+    return;
+  }
+
   try {
     const address = await createAddress({
       is_active: true,
@@ -176,6 +204,9 @@ async function handleSaveAddress(formValues) {
       step: 'browse',
       addresses: [address],
       selectedAddressId: address.id,
+      pincodeWarning: serviceable === null
+        ? "We couldn't confirm delivery coverage for this pincode — we'll verify it before dispatch."
+        : null,
     });
     loadPacks();
   } catch (err) {
@@ -219,26 +250,93 @@ async function handleAddToCart() {
   }
 }
 
-async function handleApplyCoupon(code) {
+/** Re-reads the cart after any mutation so totals/taxes/discounts stay truthful. */
+async function refreshCart(extraState = {}) {
+  const cartId = getCartId();
+  const cart = cartId ? await getCart(cartId) : null;
+  setState({ busy: false, error: null, cart, ...extraState });
+}
+
+async function runCartAction(action, extraState = {}) {
   setState({ busy: true, error: null });
   try {
-    await applyCoupon(code);
-    const cart = await getCart(getCartId());
-    setState({ busy: false, cart });
+    await action();
+    await refreshCart(extraState);
   } catch (err) {
     setState({ busy: false, error: describeError(err) });
   }
 }
 
-async function handleRemoveCoupon() {
+function handleChangeQuantity(itemId, quantity) {
+  // Dropping to zero is a removal, not a zero-quantity line item.
+  if (quantity < 1) {
+    handleRemoveItem(itemId);
+    return;
+  }
+  runCartAction(() => updateCartItemQuantity(itemId, quantity));
+}
+
+function handleRemoveItem(itemId) {
+  runCartAction(() => removeCartItem(itemId));
+}
+
+function handleClearCart() {
+  runCartAction(clearCart, { showProducts: false, showCoupons: false });
+}
+
+function handleAddProduct(productPackId) {
+  runCartAction(() => addProductToCart({ productPackId, quantity: 1 }));
+}
+
+function handleApplyKit() {
+  runCartAction(applyKit, { notice: null });
+}
+
+function handleRemoveKit() {
+  runCartAction(removeKit);
+}
+
+async function handleToggleProducts() {
+  if (state.showProducts) {
+    setState({ showProducts: false });
+    return;
+  }
   setState({ busy: true, error: null });
   try {
-    await removeCoupon();
-    const cart = await getCart(getCartId());
-    setState({ busy: false, cart });
+    const products = await fetchProducts();
+    setState({ busy: false, products, showProducts: true });
   } catch (err) {
     setState({ busy: false, error: describeError(err) });
   }
+}
+
+async function handleToggleCoupons() {
+  if (state.showCoupons) {
+    setState({ showCoupons: false });
+    return;
+  }
+  setState({ busy: true, error: null });
+  try {
+    const eligibleCoupons = await fetchEligibleCoupons();
+    setState({ busy: false, eligibleCoupons, showCoupons: true });
+  } catch (err) {
+    setState({ busy: false, error: describeError(err) });
+  }
+}
+
+/** Typed-in code path — resolves the code to an id before applying. */
+function handleApplyCouponCode(code) {
+  setState({ couponCode: code });
+  runCartAction(() => applyCouponByCode(code), { couponCode: '', showCoupons: false });
+}
+
+/** Picked from the eligible list, where we already have the id. */
+function handleApplyCouponId(couponId) {
+  runCartAction(() => applyCoupon(Number(couponId)), { showCoupons: false });
+}
+
+function handleRemoveCoupon() {
+  runCartAction(removeCoupon);
 }
 
 async function handlePlaceOrder() {
@@ -292,8 +390,10 @@ async function handlePlaceOrder() {
 }
 
 function handleLogout() {
-  logout();
+  // Close immediately — `logout()` also unregisters the push device, which is
+  // best-effort and shouldn't hold the UI open.
   closeModal();
+  logout().catch(() => {});
 }
 
 // ---- Google Places autocomplete (lazy-loaded) ----
@@ -378,7 +478,11 @@ function renderStep() {
 }
 
 function renderErrorBanner() {
-  return state.error ? `<p class="atulyash-app-error" role="alert">${escapeHtml(state.error)}</p>` : '';
+  let html = state.error ? `<p class="atulyash-app-error" role="alert">${escapeHtml(state.error)}</p>` : '';
+  if (state.pincodeWarning) {
+    html += `<p class="atulyash-app-notice" role="status">${escapeHtml(state.pincodeWarning)}</p>`;
+  }
+  return html;
 }
 
 function renderLogin() {
@@ -401,7 +505,7 @@ function renderOtp() {
     ${renderErrorBanner()}
     <form data-form="otp">
       <label for="atulyashOtp">One-time code</label>
-      <input id="atulyashOtp" name="otp" type="text" inputmode="numeric" maxlength="4" required placeholder="4-digit code">
+      <input id="atulyashOtp" name="otp" type="text" inputmode="numeric" pattern="\\d{6}" maxlength="6" required placeholder="6-digit code" autocomplete="one-time-code">
       <button class="button button-primary button-block" type="submit" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Verifying…' : 'Verify & continue'}</button>
       <button class="atulyash-app-link" type="button" data-action="back-to-login">Change number</button>
     </form>
@@ -485,29 +589,135 @@ function renderPreview() {
   `;
 }
 
+function cartItemName(item) {
+  return item.product_name
+    || item.subscription_pack_name
+    || item.product_pack_name
+    || item.product_pack?.name
+    || 'Item';
+}
+
+/**
+ * Subscription line items aren't quantity-editable — their size is set by the
+ * pack, and changing the pack goes through the subscription edit flow instead.
+ */
+function isQuantityEditable(item) {
+  return (item.cart_item_type || '').toLowerCase() !== 'subscription';
+}
+
+function renderCartItems(items) {
+  if (items.length === 0) return '<p>Your cart is empty.</p>';
+
+  return items.map((item) => {
+    const qty = Number(item.quantity ?? 1);
+    const stepper = isQuantityEditable(item)
+      ? `
+        <div class="atulyash-qty" role="group" aria-label="Quantity for ${escapeHtml(cartItemName(item))}">
+          <button type="button" data-action="qty-down" data-id="${item.id}" aria-label="Reduce quantity" ${state.busy ? 'disabled' : ''}>&minus;</button>
+          <span aria-live="polite">${escapeHtml(qty)}</span>
+          <button type="button" data-action="qty-up" data-id="${item.id}" aria-label="Increase quantity" ${state.busy ? 'disabled' : ''}>+</button>
+        </div>
+      `
+      : `<span class="atulyash-qty-static">&times; ${escapeHtml(qty)}</span>`;
+
+    return `
+      <div class="atulyash-cart-row">
+        <span class="atulyash-cart-name">${escapeHtml(cartItemName(item))}</span>
+        ${stepper}
+        <span>&#8377;${escapeHtml(item.price ?? item.total_price ?? item.weekly_price ?? '0')}</span>
+        <button class="atulyash-app-link" type="button" data-action="remove-item" data-id="${item.id}"
+          aria-label="Remove ${escapeHtml(cartItemName(item))}" ${state.busy ? 'disabled' : ''}>Remove</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCouponPicker() {
+  if (!state.showCoupons) return '';
+  if (state.eligibleCoupons.length === 0) {
+    return `<p class="atulyash-app-sub">No coupons available for this cart right now.</p>`;
+  }
+  return `
+    <div class="atulyash-list atulyash-coupon-list">
+      ${state.eligibleCoupons.map((c) => `
+        <div class="atulyash-list-row">
+          <div>
+            <strong>${escapeHtml(c.code)}</strong>
+            <span class="atulyash-app-sub">${escapeHtml(c.description || c.title || '')}</span>
+          </div>
+          <button class="atulyash-app-link" type="button" data-action="apply-coupon-id" data-id="${c.id}" ${state.busy ? 'disabled' : ''}>Apply</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderProductPicker() {
+  if (!state.showProducts) return '';
+  if (state.products.length === 0) {
+    return `<p class="atulyash-app-sub">No add-on products available right now.</p>`;
+  }
+  return `
+    <div class="atulyash-list atulyash-product-list">
+      ${state.products.map((product) => {
+        // A product carries one or more packs (sizes); the cart takes a pack id.
+        const pack = (product.product_packs || product.packs || [])[0];
+        const packId = pack?.id ?? product.default_pack_id;
+        if (!packId) return '';
+        return `
+          <div class="atulyash-list-row">
+            <div>
+              <strong>${escapeHtml(product.name)}</strong>
+              <span class="atulyash-app-sub">${escapeHtml(pack?.weight || pack?.name || '')} ${pack?.price ? `&middot; &#8377;${escapeHtml(pack.price)}` : ''}</span>
+            </div>
+            <button class="atulyash-app-link" type="button" data-action="add-product" data-id="${packId}" ${state.busy ? 'disabled' : ''}>Add</button>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 function renderCart() {
   const cart = state.cart || {};
   const items = cart.items || [];
-  const itemRows = items.map((item) => `
-    <div class="atulyash-cart-row">
-      <span>${escapeHtml(item.product_name || item.subscription_pack_name || item.product_pack_name || 'Item')} &times; ${escapeHtml(item.quantity ?? 1)}</span>
-      <span>&#8377;${escapeHtml(item.price ?? item.weekly_price ?? '0')}</span>
-    </div>
-  `).join('');
+  const kitApplied = Boolean(cart.is_kit_applied ?? cart.kit_applied ?? cart.atulyash_kit);
 
   return `
     <h2>Your cart</h2>
     ${renderErrorBanner()}
-    <div class="atulyash-cart-items">${itemRows || '<p>Your cart is empty.</p>'}</div>
+    <div class="atulyash-cart-items">${renderCartItems(items)}</div>
+
+    <div class="atulyash-app-row atulyash-cart-actions">
+      <button class="atulyash-app-link" type="button" data-action="toggle-products" ${state.busy ? 'disabled' : ''}>
+        ${state.showProducts ? 'Hide add-ons' : 'Add more products'}
+      </button>
+      ${items.length > 0 ? `<button class="atulyash-app-link" type="button" data-action="clear-cart" ${state.busy ? 'disabled' : ''}>Clear cart</button>` : ''}
+    </div>
+    ${renderProductPicker()}
+
+    <div class="atulyash-app-row atulyash-cart-actions">
+      <span class="atulyash-app-sub">Atulyash Kit${kitApplied ? ' &mdash; added' : ''}</span>
+      ${kitApplied
+        ? `<button class="atulyash-app-link" type="button" data-action="remove-kit" ${state.busy ? 'disabled' : ''}>Remove kit</button>`
+        : `<button class="atulyash-app-link" type="button" data-action="apply-kit" ${state.busy ? 'disabled' : ''}>Add the kit</button>`}
+    </div>
+
     <form data-form="coupon" class="atulyash-app-row">
       <input name="couponCode" type="text" placeholder="Coupon code" value="${escapeHtml(state.couponCode)}">
       <button class="button button-dark" type="submit" ${state.busy ? 'disabled' : ''}>Apply</button>
       ${cart.applied_coupon ? `<button class="atulyash-app-link" type="button" data-action="remove-coupon">Remove</button>` : ''}
     </form>
+    <button class="atulyash-app-link" type="button" data-action="toggle-coupons" ${state.busy ? 'disabled' : ''}>
+      ${state.showCoupons ? 'Hide available coupons' : 'See available coupons'}
+    </button>
+    ${renderCouponPicker()}
+
     <div class="atulyash-cart-totals">
       <div><span>Items total</span><span>&#8377;${escapeHtml(cart.items_total ?? 0)}</span></div>
       <div><span>Delivery fee</span><span>&#8377;${escapeHtml(cart.delivery_fee ?? 0)}</span></div>
       ${cart.applied_coupon_discount ? `<div><span>Coupon discount</span><span>-&#8377;${escapeHtml(cart.applied_coupon_discount)}</span></div>` : ''}
+      ${cart.kit_discount ? `<div><span>Kit benefit</span><span>-&#8377;${escapeHtml(cart.kit_discount)}</span></div>` : ''}
       <div class="atulyash-cart-total"><span>Total</span><span>&#8377;${escapeHtml(cart.cart_total ?? 0)}</span></div>
     </div>
     <label>Payment method</label>
@@ -515,7 +725,7 @@ function renderCart() {
       <label><input type="radio" name="paymentMethod" value="razorpay" ${state.paymentMethod === 'razorpay' ? 'checked' : ''}> Card / UPI (Razorpay)</label>
       <label><input type="radio" name="paymentMethod" value="wallet" ${state.paymentMethod === 'wallet' ? 'checked' : ''}> Wallet</label>
     </div>
-    <button class="button button-primary button-block" data-action="place-order" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Placing order…' : 'Place order'}</button>
+    <button class="button button-primary button-block" data-action="place-order" ${state.busy || items.length === 0 ? 'disabled' : ''}>${state.busy ? 'Placing order…' : 'Place order'}</button>
   `;
 }
 
@@ -587,11 +797,38 @@ function attachHandlers(body) {
   body.querySelector('[data-action="add-to-cart"]')?.addEventListener('click', handleAddToCart);
   body.querySelector('[data-action="back-to-browse"]')?.addEventListener('click', () => setState({ step: 'browse', error: null }));
 
+  // ---- Cart line items ----
+  const itemsById = new Map((state.cart?.items || []).map((item) => [String(item.id), item]));
+  const quantityOf = (id) => Number(itemsById.get(String(id))?.quantity ?? 1);
+
+  body.querySelectorAll('[data-action="qty-up"]').forEach((btn) => {
+    btn.addEventListener('click', () => handleChangeQuantity(btn.dataset.id, quantityOf(btn.dataset.id) + 1));
+  });
+  body.querySelectorAll('[data-action="qty-down"]').forEach((btn) => {
+    btn.addEventListener('click', () => handleChangeQuantity(btn.dataset.id, quantityOf(btn.dataset.id) - 1));
+  });
+  body.querySelectorAll('[data-action="remove-item"]').forEach((btn) => {
+    btn.addEventListener('click', () => handleRemoveItem(btn.dataset.id));
+  });
+  body.querySelector('[data-action="clear-cart"]')?.addEventListener('click', handleClearCart);
+
+  body.querySelector('[data-action="toggle-products"]')?.addEventListener('click', handleToggleProducts);
+  body.querySelectorAll('[data-action="add-product"]').forEach((btn) => {
+    btn.addEventListener('click', () => handleAddProduct(Number(btn.dataset.id)));
+  });
+
+  body.querySelector('[data-action="apply-kit"]')?.addEventListener('click', handleApplyKit);
+  body.querySelector('[data-action="remove-kit"]')?.addEventListener('click', handleRemoveKit);
+
   const couponForm = body.querySelector('[data-form="coupon"]');
   couponForm?.addEventListener('submit', (e) => {
     e.preventDefault();
     const code = new FormData(couponForm).get('couponCode')?.toString().trim();
-    if (code) handleApplyCoupon(code);
+    if (code) handleApplyCouponCode(code);
+  });
+  body.querySelector('[data-action="toggle-coupons"]')?.addEventListener('click', handleToggleCoupons);
+  body.querySelectorAll('[data-action="apply-coupon-id"]').forEach((btn) => {
+    btn.addEventListener('click', () => handleApplyCouponId(btn.dataset.id));
   });
   body.querySelector('[data-action="remove-coupon"]')?.addEventListener('click', handleRemoveCoupon);
   body.querySelector('[data-payment-method]')?.addEventListener('change', (e) => {

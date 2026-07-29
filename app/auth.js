@@ -46,6 +46,9 @@ export async function verifyOtp(mobile, otp) {
     if (customerId) localStorage.setItem(STORAGE_KEYS.customerId, String(customerId));
     if (claims?.cart_id) localStorage.setItem(STORAGE_KEYS.cartId, String(claims.cart_id));
 
+    const userId = claims?.user_id ?? claims?.id ?? data.user_id;
+    if (userId) localStorage.setItem(STORAGE_KEYS.userId, String(userId));
+
     document.dispatchEvent(new CustomEvent('atulyash:auth-changed'));
   }
 
@@ -64,10 +67,24 @@ export function getCartId() {
   return localStorage.getItem(STORAGE_KEYS.cartId);
 }
 
-export function logout() {
-  localStorage.removeItem(STORAGE_KEYS.token);
-  localStorage.removeItem(STORAGE_KEYS.refreshToken);
-  localStorage.removeItem(STORAGE_KEYS.customerId);
-  localStorage.removeItem(STORAGE_KEYS.cartId);
+export function getUserId() {
+  return localStorage.getItem(STORAGE_KEYS.userId);
+}
+
+/**
+ * Clears the session. Unregisters this device's push token first so the backend
+ * stops routing alerts here — best-effort, and never blocks logout: the token
+ * needs the still-valid access token to be revoked, so it has to happen before
+ * the keys are cleared.
+ */
+export async function logout() {
+  try {
+    const { unregisterCurrentDevice } = await import('./devices.js');
+    await unregisterCurrentDevice();
+  } catch {
+    // Offline, endpoint unavailable, or no token registered — log out anyway.
+  }
+
+  Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
   document.dispatchEvent(new CustomEvent('atulyash:auth-changed'));
 }

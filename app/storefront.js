@@ -1,24 +1,63 @@
-import { apiClient } from './apiClient.js';
+import { apiClient, withQuery, toList } from './apiClient.js';
 import { API_ROUTES } from './endpoints.js';
 import { RAZORPAY_KEY } from './config.js';
 import { getCartId } from './auth.js';
 
 export async function fetchSubscriptionPacks() {
-  const res = await apiClient({ url: API_ROUTES.PRODUCT_SUBSCRIPTION_PACKS.GET });
-  const packs = res.data?.results || [];
+  const res = await apiClient({
+    url: withQuery(API_ROUTES.PRODUCT_SUBSCRIPTION_PACKS.GET, { is_active: true, page_size: 100 }),
+  });
+  const packs = toList(res.data, ['packs']);
   return [...packs].sort((a, b) => (a.order_rank || 0) - (b.order_rank || 0));
 }
 
-export async function fetchProducts() {
-  const res = await apiClient({ url: API_ROUTES.PRODUCT.GET });
-  return res.data?.results || [];
+/**
+ * Catalog products. Pass a pack id to get only products (and pricing) valid
+ * under that subscription tier — the `subscription_pack_id` filter from the doc.
+ */
+export async function fetchProducts(subscriptionPackId = null) {
+  const res = await apiClient({
+    url: withQuery(API_ROUTES.PRODUCT.GET, { subscription_pack_id: subscriptionPackId }),
+  });
+  return toList(res.data, ['products']);
 }
 
 export async function fetchAddresses(customerId) {
   const res = await apiClient({
-    url: `${API_ROUTES.CUSTOMER_ADDRESS.GET}?customer__id=${customerId}`,
+    url: withQuery(API_ROUTES.CUSTOMER_ADDRESS.GET, {
+      customer__id: customerId,
+      // Without is_active the list includes soft-deleted addresses.
+      is_active: true,
+      page_size: 100,
+    }),
   });
-  return res.data?.results || [];
+  return toList(res.data, ['addresses']);
+}
+
+/** Active serviceable pincodes across the logistics network. */
+export async function fetchPincodes() {
+  const res = await apiClient({
+    url: withQuery(API_ROUTES.PINCODE.GET, { is_active: true, page_size: 200 }),
+  });
+  return toList(res.data, ['pincodes']);
+}
+
+/**
+ * Checks a pincode against the serviceable list. Returns `true` when the
+ * pincode is covered, `false` when it definitively is not, and `null` when the
+ * check could not run (network/API failure) so callers can let the address
+ * through rather than blocking signup on an unrelated outage.
+ */
+export async function isPincodeServiceable(pincode) {
+  const target = String(pincode || '').trim();
+  if (!/^\d{6}$/.test(target)) return false;
+  try {
+    const pincodes = await fetchPincodes();
+    if (pincodes.length === 0) return null;
+    return pincodes.some((p) => String(p.pincode ?? p.code ?? p.name).trim() === target);
+  } catch {
+    return null;
+  }
 }
 
 export async function createAddress(payload) {
@@ -98,9 +137,62 @@ export async function addSubscriptionToCart({ subscriptionPackId, startDate, add
   }
 }
 
+/**
+ * Adds a one-time purchase (or a subscription add-on) product pack to the cart.
+ * `cartItemType` maps to the doc's `cart_item_type`: "One Time" for a regular
+ * purchase, "Add On" for an extra attached to an active subscription schedule.
+ */
+export async function addProductToCart({ productPackId, quantity = 1, cartItemType = 'One Time' }) {
+  const cartId = getCartId();
+  const res = await apiClient({
+    url: API_ROUTES.ORDER_CART_ITEMS.POST,
+    method: 'POST',
+    body: {
+      is_active: true,
+      description: '',
+      cart_item_type: cartItemType,
+      quantity,
+      ...(cartId ? { cart: Number(cartId) } : {}),
+      product_pack: productPackId,
+    },
+  });
+  return res.data;
+}
+
+export async function updateCartItemQuantity(itemId, quantity) {
+  const res = await apiClient({
+    url: API_ROUTES.ORDER_CART_ITEMS.UPDATE(itemId),
+    method: 'PATCH',
+    body: { quantity },
+  });
+  return res.data;
+}
+
+export async function removeCartItem(itemId) {
+  await apiClient({ url: API_ROUTES.ORDER_CART_ITEMS.DELETE(itemId), method: 'DELETE' });
+}
+
+/** Empties the cart — resets items, totals, taxes and coupon application. */
+export async function clearCart() {
+  const res = await apiClient({ url: API_ROUTES.CART.CLEAR });
+  return res.data;
+}
+
 export async function getCart(cartId) {
   const res = await apiClient({ url: API_ROUTES.GET_USER_CART_ITEMS.GET_BY_ID(cartId) });
   return res.data;
+}
+
+/**
+ * Coupons eligible for the cart as it stands. The apply endpoint takes a
+ * numeric coupon id, not the human-facing code, so this is also what resolves a
+ * typed-in code to an id (see `applyCouponByCode`).
+ */
+export async function fetchEligibleCoupons(codeSearch = null) {
+  const res = await apiClient({
+    url: withQuery(API_ROUTES.GET_VALID_COUPON_FOR_CART.GET, { is_active: true, code: codeSearch }),
+  });
+  return toList(res.data, ['coupons']);
 }
 
 export async function applyCoupon(couponId) {
@@ -112,8 +204,36 @@ export async function applyCoupon(couponId) {
   return res.data;
 }
 
+/**
+ * Applies a coupon the customer typed as a code. The API only accepts ids, so
+ * resolve the code against the eligible-coupons list first and fail with a
+ * message the user can act on when there's no match.
+ */
+export async function applyCouponByCode(code) {
+  const target = String(code || '').trim().toUpperCase();
+  if (!target) throw new Error('Enter a coupon code.');
+
+  const coupons = await fetchEligibleCoupons(target);
+  const match = coupons.find((c) => String(c.code || '').trim().toUpperCase() === target);
+  if (!match) {
+    throw new Error('That coupon code is not valid for your cart.');
+  }
+  return applyCoupon(match.id);
+}
+
 export async function removeCoupon() {
   const res = await apiClient({ url: API_ROUTES.REMOVE_COUPON_FROM_CART.POST, method: 'POST' });
+  return res.data;
+}
+
+/** Adds the introductory/loyalty "Atulyash Kit" benefits to the cart. */
+export async function applyKit() {
+  const res = await apiClient({ url: API_ROUTES.CART.APPLY_KIT, method: 'POST' });
+  return res.data;
+}
+
+export async function removeKit() {
+  const res = await apiClient({ url: API_ROUTES.CART.REMOVE_KIT, method: 'POST' });
   return res.data;
 }
 
