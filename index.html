@@ -48,7 +48,7 @@
 
       <div class="atulyash-header-cta-group">
         <button class="header-cta atulyash-app-cta" type="button" data-open-app>First experience <span aria-hidden="true">↗</span></button>
-        <button class="header-cta atulyash-app-cta is-hidden" type="button" data-open-account>My account</button>
+        <button class="header-cta atulyash-app-cta is-hidden" type="button" data-open-account>My account<span class="atulyash-unread-badge" data-unread-badge hidden aria-label="unread notifications"></span></button>
       </div>
 
       <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="primaryNav">
@@ -385,6 +385,22 @@ No endorsement, approval or commercial association with Atulyash Foods is implie
       </div>
     </section>
 
+    <!-- CMS-driven sections. Hidden until app/content.js confirms there is
+         something to show, so an empty or unreachable API leaves no gap. -->
+    <section class="section atulyash-cms-section" data-product-videos-section hidden aria-labelledby="product-videos-title">
+      <div class="container">
+        <h2 id="product-videos-title" data-product-videos-title>More from the mill</h2>
+        <div class="atulyash-video-rail" data-product-videos></div>
+      </div>
+    </section>
+
+    <section class="section atulyash-cms-section" data-reviews-section hidden aria-labelledby="reviews-title">
+      <div class="container">
+        <h2 id="reviews-title">What families say</h2>
+        <div class="atulyash-review-rail" data-reviews-rail></div>
+      </div>
+    </section>
+
     <section class="faq-section section" aria-labelledby="faq-title">
       <div class="container faq-layout">
         <div class="faq-heading">
@@ -392,12 +408,13 @@ No endorsement, approval or commercial association with Atulyash Foods is implie
           <p class="eyebrow"><span></span>Good to know</p>
           <h2 id="faq-title">Question before you begin</h2>
           <p>Our team will help you understand Atulyash, weekly delivery, subscription and your first experience.</p>
-          <div class="faq-contact-actions">
+          <div class="faq-contact-actions" data-contact-actions>
             <a href="mailto:atulyashfoods@gmail.com" class="text-action text-action-dark">Write to us <span aria-hidden="true">→</span></a>
             <a href="tel:+919818588996" class="text-action text-action-dark">Call us on 98185 88996 <span aria-hidden="true">→</span></a>
           </div>
+          <div class="faq-contact-actions" data-truth-book hidden></div>
         </div>
-        <div class="faq-list" data-motion-sequence>
+        <div class="faq-list" data-motion-sequence data-faq-list>
           <details>
             <summary>What makes Atulyash different from regular packaged atta?<span aria-hidden="true">+</span></summary>
             <p>Atulyash is built around carefully selected MP Sharbati wheat, natural stone slow milling, chokar retention and weekly delivery. The idea is not to store atta for long, but to receive it closer to consumption.</p>

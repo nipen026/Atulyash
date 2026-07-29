@@ -502,3 +502,329 @@ button.atulyash-plan-card {
   background: var(--cream-50);
   color: inherit;
 }
+
+/* ==========================================================================
+   Cart line-item controls, filters, ratings and CMS rails.
+   Added alongside the cart-editing / reviews / profile / help features so they
+   reuse the same tokens (--line, --muted, --forest-*, --cream-*) as the rest
+   of this file rather than introducing a second visual language.
+   ========================================================================== */
+
+/* Quantity stepper ------------------------------------------------------- */
+
+.atulyash-cart-row {
+  gap: 12px;
+}
+
+.atulyash-cart-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.atulyash-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.atulyash-qty button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--forest-800);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.atulyash-qty button:hover:not(:disabled) {
+  background: var(--cream-100, rgba(0, 0, 0, 0.04));
+}
+
+.atulyash-qty button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.atulyash-qty span {
+  min-width: 28px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.atulyash-qty-static {
+  color: var(--muted);
+  font-size: 0.9rem;
+  flex: 0 0 auto;
+}
+
+.atulyash-cart-actions {
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0;
+}
+
+/* Filter chips and pager ------------------------------------------------- */
+
+.atulyash-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.atulyash-chip {
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.atulyash-chip:hover:not(:disabled):not(.is-active) {
+  color: var(--forest-800);
+  border-color: var(--forest-800);
+}
+
+.atulyash-chip.is-active {
+  color: var(--cream-50);
+  background: var(--forest-950);
+  border-color: var(--forest-950);
+}
+
+.atulyash-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.atulyash-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* Star rating ------------------------------------------------------------ */
+
+.atulyash-stars {
+  display: inline-flex;
+  gap: 4px;
+  margin: 6px 0 10px;
+}
+
+.atulyash-star {
+  position: relative;
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--line);
+  transition: color 120ms ease, transform 120ms ease;
+}
+
+.atulyash-star input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+.atulyash-star.is-on {
+  color: var(--rust-500, #c2703d);
+}
+
+.atulyash-star:hover {
+  transform: scale(1.12);
+}
+
+.atulyash-star:focus-within {
+  outline: 2px solid var(--forest-800);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Profile ---------------------------------------------------------------- */
+
+.atulyash-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  margin-bottom: 14px;
+}
+
+.atulyash-app-body textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--cream-50);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: inherit;
+  resize: vertical;
+}
+
+.atulyash-app-body textarea:focus {
+  outline: none;
+  border-color: var(--forest-800);
+}
+
+.atulyash-app-body textarea:focus-visible {
+  outline: 2px solid var(--forest-800);
+  outline-offset: 1px;
+}
+
+.atulyash-app-body input[type="file"] {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* Help tab FAQs ---------------------------------------------------------- */
+
+.atulyash-faq-list details {
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+}
+
+.atulyash-faq-list summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.atulyash-faq-list summary::-webkit-details-marker {
+  display: none;
+}
+
+.atulyash-faq-list p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Unread badge ----------------------------------------------------------- */
+
+.atulyash-unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--rust-500, #c2703d);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* CMS-driven marketing rails --------------------------------------------- */
+
+.atulyash-cms-section h2 {
+  margin-bottom: 24px;
+}
+
+.atulyash-video-rail,
+.atulyash-review-rail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.atulyash-video-card {
+  margin: 0;
+}
+
+.atulyash-video-card video {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: 2px;
+  background: #000;
+}
+
+.atulyash-video-card figcaption {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.atulyash-review-card {
+  margin: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--cream-50);
+}
+
+.atulyash-review-card p {
+  margin: 10px 0 12px;
+  font-size: 0.95rem;
+}
+
+.atulyash-review-card cite {
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.atulyash-review-stars {
+  color: var(--rust-500, #c2703d);
+  letter-spacing: 2px;
+}
+
+@media (max-width: 560px) {
+  .atulyash-cart-row {
+    flex-wrap: wrap;
+  }
+
+  .atulyash-cart-name {
+    flex: 1 1 100%;
+  }
+
+  .atulyash-pager {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+}
+
+.atulyash-faq-group {
+  margin: 22px 0 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.atulyash-faq-group:first-child {
+  margin-top: 6px;
+}

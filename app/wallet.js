@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient.js';
+import { apiClient, withQuery, toList } from './apiClient.js';
 import { API_ROUTES } from './endpoints.js';
 import { openRazorpayCheckout } from './storefront.js';
 
@@ -9,12 +9,16 @@ export async function fetchWalletBalance(customerId) {
 
 export async function fetchRechargeOptions(cartAmount) {
   const res = await apiClient({ url: API_ROUTES.CUSTOMER_WALLET.RECHARGE_OPTIONS(cartAmount) });
-  return res.data?.results || res.data || [];
+  return toList(res.data, ['options', 'recharge_options']);
 }
 
-export async function fetchBonusSlabs() {
-  const res = await apiClient({ url: API_ROUTES.CUSTOMER_WALLET.BONUS_SLABS });
-  return res.data?.results || res.data || [];
+/**
+ * Cashback/extra-credit slabs awarded for given recharge ranges. Renamed from
+ * `fetchBonusSlabs` along with its route — see endpoints.js.
+ */
+export async function fetchPrepaidAdvantageSlabs() {
+  const res = await apiClient({ url: API_ROUTES.CUSTOMER_WALLET.PREPAID_ADVANTAGE_SLABS });
+  return toList(res.data, ['slabs', 'prepaid_advantage_slabs']);
 }
 
 export async function previewRecharge(amount) {
@@ -48,9 +52,11 @@ export async function verifyRecharge({ razorpayOrderId, razorpayPaymentId, razor
   return res.data;
 }
 
-export async function fetchWalletTransactions() {
-  const res = await apiClient({ url: API_ROUTES.CUSTOMER_WALLET.TRANSACTION_HISTORY });
-  return res.data?.results || res.data || [];
+export async function fetchWalletTransactions(page = 1) {
+  const res = await apiClient({
+    url: withQuery(API_ROUTES.CUSTOMER_WALLET.TRANSACTION_HISTORY, { page }),
+  });
+  return toList(res.data, ['transactions']);
 }
 
 /**

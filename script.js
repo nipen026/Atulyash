@@ -146,22 +146,26 @@ const renderCalculatorResult = (data) => {
   }
 };
 
-const fetchCalculatorEstimate = async () => {
+// This file is a classic script, so it can't import app/apiClient.js. Instead of
+// hardcoding a second copy of the API host, it asks app/content.js — which is a
+// module and owns the shared client — to make the call, and renders the reply.
+const fetchCalculatorEstimate = () => {
   if (!rotisPerDay) return;
-  const rotis = Number(rotisPerDay.value);
-
-  try {
-    const response = await fetch(`https://api.atulyash.com/subscription/subscription_pack/consumption-calculator/?rotis_per_day=${rotis}`);
-    if (!response.ok) throw new Error('Calculator request failed');
-    const data = await response.json();
-    renderCalculatorResult(data);
-  } catch (error) {
-    console.error('Atta calculator error:', error);
-    if (calculatorMonthlyNote) {
-      calculatorMonthlyNote.textContent = 'Could not fetch an estimate right now — please try again.';
-    }
-  }
+  document.dispatchEvent(new CustomEvent('atulyash:calculator-request', {
+    detail: { rotisPerDay: Number(rotisPerDay.value) }
+  }));
 };
+
+document.addEventListener('atulyash:calculator-result', (event) => {
+  if (event.detail?.data) renderCalculatorResult(event.detail.data);
+});
+
+document.addEventListener('atulyash:calculator-error', (event) => {
+  console.error('Atta calculator error:', event.detail?.error);
+  if (calculatorMonthlyNote) {
+    calculatorMonthlyNote.textContent = 'Could not fetch an estimate right now — please try again.';
+  }
+});
 
 const scheduleCalculatorEstimate = () => {
   updateSliderProgress();
@@ -175,7 +179,9 @@ if (rotisPerDay) {
     if (latestCalculatorData) renderCalculatorResult(latestCalculatorData);
   });
   updateSliderProgress();
-  fetchCalculatorEstimate();
+  // Deferred to DOMContentLoaded: app/content.js is a module, so it evaluates
+  // after this file. Requesting immediately would fire before it's listening.
+  document.addEventListener('DOMContentLoaded', fetchCalculatorEstimate);
 }
 
 if (calculatorInfoTrigger && calculatorInfoModal) {

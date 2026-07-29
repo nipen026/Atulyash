@@ -1,4 +1,5 @@
 import { API_BASE_URL, STORAGE_KEYS } from './config.js';
+import { API_ROUTES } from './endpoints.js';
 
 // The backend 301-redirects any path missing a trailing slash (verified against
 // every endpoint used here). Redirects can drop the Authorization header on a
@@ -10,6 +11,49 @@ function normalizePath(path) {
   return query ? `${withSlash}?${query}` : withSlash;
 }
 
+/**
+ * Appends query params to a route, skipping null/undefined/'' so callers can
+ * pass optional filters inline without building conditionals at every callsite.
+ * Merges correctly with routes that already carry a querystring.
+ * @param {string} path
+ * @param {Record<string, string|number|boolean|null|undefined>} params
+ */
+export function withQuery(path, params = {}) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === null || value === undefined || value === '') return;
+    search.append(key, String(value));
+  });
+  const qs = search.toString();
+  if (!qs) return path;
+  return `${path}${path.includes('?') ? '&' : '?'}${qs}`;
+}
+
+/**
+ * Pulls a list out of a response body whose shape varies by endpoint.
+ *
+ * Some endpoints are DRF-paginated (`{count, results}`), some return a bare
+ * array, and some wrap the list in an endpoint-specific key
+ * (`{options: [...]}`). The old `data?.results || data || []` idiom silently
+ * returned the *object* for that last case — `|| []` can't fire on a truthy
+ * object — and callers then crashed on `.map`. Always returns an array.
+ *
+ * @param {any} data response body
+ * @param {string[]} preferredKeys endpoint-specific keys to check before the generic ones
+ */
+export function toList(data, preferredKeys = []) {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== 'object') return [];
+
+  for (const key of [...preferredKeys, 'results', 'data', 'items']) {
+    if (Array.isArray(data[key])) return data[key];
+  }
+
+  // Unknown wrapper key: fall back to the first array-valued property rather
+  // than dropping data we clearly received.
+  return Object.values(data).find(Array.isArray) || [];
+}
+
 let refreshPromise = null;
 
 async function refreshTokens() {
@@ -18,7 +62,7 @@ async function refreshTokens() {
   const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken);
   if (!refreshToken) return false;
 
-  refreshPromise = fetch(`${API_BASE_URL}${normalizePath('/token/refresh/')}`, {
+  refreshPromise = fetch(`${API_BASE_URL}${normalizePath(API_ROUTES.AUTH.TOKEN_REFRESH)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refresh: refreshToken }),
@@ -44,10 +88,7 @@ async function refreshTokens() {
 }
 
 function clearSession() {
-  localStorage.removeItem(STORAGE_KEYS.token);
-  localStorage.removeItem(STORAGE_KEYS.refreshToken);
-  localStorage.removeItem(STORAGE_KEYS.customerId);
-  localStorage.removeItem(STORAGE_KEYS.cartId);
+  Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
 }
 
 /**

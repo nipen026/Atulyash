@@ -22,4 +22,9 @@ export const STORAGE_KEYS = {
   refreshToken: 'atulyash_refresh_token',
   customerId: 'atulyash_customer_id',
   cartId: 'atulyash_cart_id',
+  // Auth-user id from the JWT — distinct from customerId. The profile endpoints
+  // (/users/users/<id>/) key off this one.
+  userId: 'atulyash_user_id',
+  // Last push token we registered, so logout can unregister exactly that device.
+  deviceToken: 'atulyash_device_token',
 };
